@@ -23,15 +23,15 @@ Portect the exposed file by putting it in its own folder. Name it index.html to 
 # Setup:
 ## Install libraries
 <code>sudo apt update</code>  
-build essential  
+<strong>build essential</strong>  
 <code>sudo apt install -y build-essential git</code>  
-Maintained WiringPi (GC2 fork) — build from source  
+<strong>Maintained WiringPi (GC2 fork) — build from source</strong>  
 <code>git clone https://github.com/WiringPi/WiringPi.git</code>  
 <code>cd WiringPi</code>  
 <code>./build</code>  
 <code>gpio -v          # should report version 3.x</code>  
 <code>cd ~</code>  
-flask  
+<strong>flask</strong>  
 <code>pip install flask flask-cors</code>  
 
 ## Compile the feeder
