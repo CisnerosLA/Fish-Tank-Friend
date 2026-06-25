@@ -36,7 +36,7 @@ Protect the exposed file by putting it in its own folder. Name it index.html to 
 <code>gpio -v          # should report version 3.x</code>  
 <code>cd ~</code>  
 <strong>flask</strong>  
-<code>pip install flask flask-cors</code>  
+<code>sudo apt install -y python3-flask flask-cors</code>  
 
 ## Compile the feeder
 <code>cd /home/pi/feeder</code>  
