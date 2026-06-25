@@ -8,7 +8,7 @@
 #define IN4 27	//WPi GPIO 27 (RPi0 pin 36) | WPi GPIO 6 (RPi4 pin 22)
 const int teeth = 2048;
 int Steps = 0;			//stage of the stepper coils
-bool Direction = true;		//ccw: RHR
+bool Direction = false;		//true = ccw: RHR
 int feedNum = 0;		//number of times the feeder has been ran
 int compartments = 4;		//number of food compartments
 
@@ -41,10 +41,10 @@ int main (void) {
 }
 
 void process() {
-  Direction = false;
-  for (int i = 0; i < ((teeth) / compartments)-1; i++) { //-1 bc 11 does not go into 2048 evenly. /4 so it stops every quarter turn
+  Direction = true;
+  for (int i = 0; i < ((teeth) / compartments)-2; i++) { //-2 bc 11 does not go into 2048 evenly. /4 so it stops every quarter turn
     stepper(1);
-    delayMicroseconds(2400); //800
+    delayMicroseconds(10000); //2400); //800
   }
 
   printf("shake...");
