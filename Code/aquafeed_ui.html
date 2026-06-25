@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AquaFeed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #080e1a;
+  --surface:     #0f1b2d;
+  --surface2:    #162035;
+  --surface3:    #1d2940;
+  --border:      #1a3352;
+  --border-hi:   #2b5580;
+  --accent:      #00d4ff;
+  --accent2:     #0099cc;
+  --accent-dim:  rgba(0,212,255,.1);
+  --accent-glow: rgba(0,212,255,.28);
+  --green:       #00e5a0;
+  --green-dim:   rgba(0,229,160,.1);
+  --red:         #ff4d6a;
+  --red-dim:     rgba(255,77,106,.1);
+  --amber:       #ffc845;
+  --amber-dim:   rgba(255,200,69,.1);
+  --text:        #ddeeff;
+  --text-dim:    #7a9bbf;
+  --text-muted:  #3a5878;
+  --mono:        'Space Mono', monospace;
+  --sans:        'DM Sans', sans-serif;
+  --r:           12px;
+  --rs:          8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* animated bg */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 5% 15%,rgba(0,80,160,.09),transparent 60%),
+             radial-gradient(ellipse 50% 40% at 95% 85%,rgba(0,180,255,.06),transparent 55%)}
+
+/* bubbles */
+.bubbles{position:fixed;bottom:0;left:0;right:0;height:100vh;pointer-events:none;overflow:hidden;z-index:0}
+.b{position:absolute;bottom:-12px;border-radius:50%;background:rgba(0,180,255,.06);border:1px solid rgba(0,180,255,.13);animation:rise linear infinite}
+.b:nth-child(1){width:7px;height:7px;left:8%;animation-duration:9s;animation-delay:0s}
+.b:nth-child(2){width:4px;height:4px;left:22%;animation-duration:12s;animation-delay:2.5s}
+.b:nth-child(3){width:11px;height:11px;left:38%;animation-duration:10s;animation-delay:5s}
+.b:nth-child(4){width:6px;height:6px;left:57%;animation-duration:14s;animation-delay:1s}
+.b:nth-child(5){width:9px;height:9px;left:73%;animation-duration:11s;animation-delay:3.5s}
+.b:nth-child(6){width:5px;height:5px;left:90%;animation-duration:8s;animation-delay:6s}
+@keyframes rise{0%{transform:translateY(0) scale(1);opacity:0}10%{opacity:1}90%{opacity:.5}100%{transform:translateY(-105vh) scale(.5);opacity:0}}
+
+/* layout */
+.app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:20px 16px 48px}
+
+/* header */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;padding-top:6px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 0 18px var(--accent-glow)}
+.logo-name{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent);letter-spacing:1.5px}
+.logo-sub{font-size:10px;color:var(--text-muted);font-family:var(--mono);letter-spacing:.5px;margin-top:1px}
+.add-btn{background:var(--accent-dim);border:1px solid var(--border-hi);color:var(--accent);padding:8px 14px;border-radius:var(--rs);font-family:var(--mono);font-size:11px;cursor:pointer;letter-spacing:.5px;transition:all .2s}
+.add-btn:hover{background:rgba(0,212,255,.18);box-shadow:0 0 12px var(--accent-glow)}
+
+.sec-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px;padding-left:2px}
+
+/* tank card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;overflow:hidden;transition:border-color .3s}
+.card:hover{border-color:var(--border-hi)}
+.card.feeding{border-color:var(--green);box-shadow:0 0 22px rgba(0,229,160,.13)}
+.card.offline{opacity:.65}
+
+.card-head{display:flex;align-items:center;padding:13px 15px;cursor:pointer;gap:11px;user-select:none;-webkit-tap-highlight-color:transparent}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--text-muted);flex-shrink:0;transition:background .3s,box-shadow .3s}
+.dot.on{background:var(--green);box-shadow:0 0 7px rgba(0,229,160,.6);animation:pdot 2.2s ease-in-out infinite}
+.dot.feeding-dot{background:var(--amber);box-shadow:0 0 7px rgba(255,200,69,.6);animation:pdot .9s ease-in-out infinite}
+.dot.off{background:var(--red)}
+@keyframes pdot{0%,100%{opacity:1}50%{opacity:.35}}
+
+.card-name-wrap{flex:1;min-width:0}
+.card-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-url{font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:2px}
+
+.badge{font-family:var(--mono);font-size:10px;padding:3px 7px;border-radius:4px}
+.bg{background:var(--green-dim);color:var(--green);border:1px solid rgba(0,229,160,.2)}
+.ba{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,200,69,.2)}
+.br{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,106,.2)}
+.bb{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,212,255,.2)}
+.bd{background:var(--surface3);color:var(--text-muted);border:1px solid var(--border)}
+
+.chev{color:var(--text-muted);font-size:11px;transition:transform .25s;margin-left:3px;flex-shrink:0}
+.card.expanded .chev{transform:rotate(180deg)}
+
+/* card body */
+.card-body{display:none;padding:0 15px 15px;border-top:1px solid var(--border)}
+.card.expanded .card-body{display:block}
+
+/* stats */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:12px 0}
+.sc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:9px 10px 7px}
+.sl{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px}
+.sv{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent)}
+
+/* toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:11px}
+.tl{font-size:13px;font-weight:500}
+.ts{font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:1px}
+.tog{position:relative;width:40px;height:22px;flex-shrink:0}
+.tog input{display:none}
+.tog-track{position:absolute;inset:0;background:var(--surface3);border-radius:11px;border:1px solid var(--border);cursor:pointer;transition:all .25s}
+.tog-track::after{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--text-muted);transition:all .25s}
+.tog input:checked+.tog-track{background:var(--green-dim);border-color:var(--green)}
+.tog input:checked+.tog-track::after{left:21px;background:var(--green);box-shadow:0 0 6px rgba(0,229,160,.5)}
+
+/* form */
+.fg{margin-bottom:10px}
+.fl{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;margin-bottom:5px;display:block}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+input[type=text],input[type=number],input[type=datetime-local]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--mono);font-size:13px;padding:9px 11px;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(0,153,204,.14)}
+
+/* next feed */
+.nfd{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:9px 12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.nfl{font-family:var(--mono);font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.nfv{font-family:var(--mono);font-size:12px;color:var(--amber)}
+
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:var(--rs);font-family:var(--mono);font-size:11px;letter-spacing:.5px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:all .2s;text-transform:uppercase;width:100%;-webkit-tap-highlight-color:transparent}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn:active:not(:disabled){transform:scale(.97)}
+.bp{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#000;border-color:var(--accent)}
+.bp:hover:not(:disabled){box-shadow:0 0 16px var(--accent-glow)}
+.bs{background:var(--surface2);color:var(--text-dim);border-color:var(--border)}
+.bs:hover:not(:disabled){background:var(--surface3);color:var(--text);border-color:var(--border-hi)}
+.bgreen{background:var(--green-dim);color:var(--green);border-color:rgba(0,229,160,.3)}
+.bgreen:hover:not(:disabled){background:rgba(0,229,160,.18);box-shadow:0 0 12px rgba(0,229,160,.18)}
+.bred{background:var(--red-dim);color:var(--red);border-color:rgba(255,77,106,.3)}
+.bred:hover:not(:disabled){background:rgba(255,77,106,.18)}
+.bamber{background:var(--amber-dim);color:var(--amber);border-color:rgba(255,200,69,.3)}
+.bamber:hover:not(:disabled){background:rgba(255,200,69,.18);box-shadow:0 0 12px rgba(255,200,69,.18)}
+
+.brow{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px}
+
+.spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* log */
+.log-sec{margin-top:12px}
+.log-tog{font-family:var(--mono);font-size:10px;color:var(--text-dim);cursor:pointer;letter-spacing:1px;display:flex;align-items:center;gap:6px;padding:5px 0;user-select:none;text-transform:uppercase}
+.log-tog:hover{color:var(--text)}
+.log-list{display:none;margin-top:7px;max-height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--rs)}
+.log-list.open{display:block}
+.le{padding:7px 11px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.le:last-child{border-bottom:none}
+.lok{color:var(--green)}.lfl{color:var(--red)}.lti{color:var(--text-muted);flex-shrink:0}.lde{color:var(--text-dim)}
+
+/* divider */
+.div{height:1px;background:var(--border);margin:12px 0}
+
+/* toast */
+.toast-wrap{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:100;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:calc(100% - 36px);max-width:440px}
+.toast{background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--rs);padding:9px 15px;font-family:var(--mono);font-size:11px;color:var(--text);display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.45);animation:tin .28s ease,tout .28s ease 2.72s forwards}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+.toast.info{border-color:var(--accent);color:var(--accent)}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tout{from{opacity:1}to{opacity:0}}
+
+/* modal */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:50;backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:18px}
+.mo.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border-hi);border-radius:var(--r);padding:22px;width:100%;max-width:370px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.modal-title{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);letter-spacing:1.5px;margin-bottom:16px;text-transform:uppercase}
+
+/* empty state */
+.empty{text-align:center;padding:50px 20px;color:var(--text-muted)}
+.empty-ico{font-size:46px;margin-bottom:14px;opacity:.45}
+.empty-t{font-family:var(--mono);font-size:13px;color:var(--text-dim);margin-bottom:7px;letter-spacing:1px}
+.empty-s{font-size:13px;line-height:1.6}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--surface2)}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="bubbles"><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div><div class="b"></div></div>
+
+<div class="app">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🐟</div>
+      <div>
+        <div class="logo-name">AQUAFEED</div>
+        <div class="logo-sub">TANK CONTROL SYSTEM</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="add-btn" onclick="exportTanks()" title="Export tank list">⤓</button>
+      <button class="add-btn" onclick="document.getElementById('import-file').click()" title="Import tank list">⤒</button>
+      <button class="add-btn" onclick="openAddModal()">+ ADD TANK</button>
+    </div>
+  </div>
+  <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importTanks(event)" />
+  <div class="sec-label">CONNECTED TANKS</div>
+  <div id="tank-list"></div>
+</div>
+
+<!-- Add Tank Modal -->
+<div class="mo" id="add-modal" onclick="if(event.target===this)closeAddModal()">
+  <div class="modal">
+    <div class="modal-title">ADD NEW TANK</div>
+    <div class="fg">
+      <label class="fl">Tank Name</label>
+      <input type="text" id="new-name" placeholder="Living Room Tank" />
+    </div>
+    <div class="fg">
+      <label class="fl">Raspberry Pi Address</label>
+      <input type="text" id="new-ip" placeholder="tank-office.local  or  192.168.1.100" />
+    </div>
+    <div class="fg">
+      <label class="fl">Port (default 5000)</label>
+      <input type="number" id="new-port" value="5000" min="1" max="65535" />
+    </div>
+    <div class="fg">
+      <label class="fl">Auth Token</label>
+      <input type="text" id="new-token" placeholder="printed by server.py on the Pi" />
+    </div>
+    <div class="div"></div>
+    <div class="brow">
+      <button class="btn bs" onclick="closeAddModal()">CANCEL</button>
+      <button class="btn bp" onclick="confirmAdd()">ADD TANK</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+// ── Storage ──────────────────────────────────────────────────────────────────
+const SK = 'aqf_v3';
+let tanks = (() => { try { return JSON.parse(localStorage.getItem(SK)) || []; } catch { return []; } })();
+const save = () => localStorage.setItem(SK, JSON.stringify(tanks));
+
+let states = {};         // tankId → status response
+let timers = {};         // tankId → setInterval handle
+let expanded = new Set();
+let logOpen = new Set();
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const uid  = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const url  = (t, p) => `http://${t.ip}:${t.port||5000}${p}`;
+const pad2 = n => String(n).padStart(2,'0');
+
+async function api(tank, path, opts={}) {
+  const headers = { 'Content-Type':'application/json', ...(opts.headers||{}) };
+  if (tank.token) headers['X-Auth-Token'] = tank.token;
+  const r = await fetch(url(tank, path), { ...opts, headers });
+  if (r.status === 401) throw new Error('Bad token');
+  if (!r.ok) {
+    // surface structured errors (e.g. overfeeding lockout) to callers
+    let body = null;
+    try { body = await r.json(); } catch {}
+    const err = new Error(body?.error || `HTTP ${r.status}`);
+    err.status = r.status; err.body = body;
+    throw err;
+  }
+  return r.json();
+}
+
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${{success:'✓',error:'✗',info:'◈'}[type]||'◈'}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+function fmtDt(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' +
+           d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+  } catch { return '—'; }
+}
+
+function toInput(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  } catch { return ''; }
+}
+
+// ── Polling ───────────────────────────────────────────────────────────────────
+async function poll(tank) {
+  try {
+    const d = await api(tank, '/api/status');
+    states[tank.id] = { online:true, ...d };
+  } catch {
+    states[tank.id] = { online:false };
+  }
+  render(tank.id);
+}
+
+function startPoll(tank) {
+  stopPoll(tank.id);
+  poll(tank);
+  timers[tank.id] = setInterval(() => poll(tank), 8000);
+}
+
+function stopPoll(id) {
+  if (timers[id]) { clearInterval(timers[id]); delete timers[id]; }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderAll() {
+  const list = document.getElementById('tank-list');
+  if (!tanks.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-ico">🐠</div>
+      <div class="empty-t">NO TANKS CONNECTED</div>
+      <div class="empty-s">Tap "+ ADD TANK" to connect your<br>first Raspberry Pi feeder.</div></div>`;
+    return;
+  }
+  tanks.forEach(t => {
+    if (!document.getElementById(`c-${t.id}`)) {
+      const el = document.createElement('div');
+      el.id = `c-${t.id}`;
+      list.appendChild(el);
+    }
+  });
+  tanks.forEach(t => render(t.id));
+}
+
+function render(id) {
+  const tank = tanks.find(t => t.id === id);
+  const el   = document.getElementById(`c-${id}`);
+  if (!tank || !el) return;
+
+  const st   = states[id] || {};
+  const cfg  = st.config || {};
+  const on   = st.online;
+  const fed  = st.is_feeding;
+  const exp  = expanded.has(id);
+  const lf   = st.last_feed;
+  const nft  = cfg.next_feed_time;
+  const name = cfg.tank_name || tank.name;
+
+  let dotCls = 'off', bdg = `<span class="badge bd">OFFLINE</span>`;
+  if (on && fed)            { dotCls='feeding-dot'; bdg=`<span class="badge ba">FEEDING</span>`; }
+  else if (on && cfg.enabled) { dotCls='on';        bdg=`<span class="badge bg">ACTIVE</span>`; }
+  else if (on)              { dotCls='on';           bdg=`<span class="badge bb">ONLINE</span>`; }
+
+  const nfdHtml = nft ? `<div class="nfd"><span class="nfl">NEXT FEED</span><span class="nfv">${fmtDt(nft)}</span></div>` : '';
+
+  // log entries (fetched separately)
+  const logEntries = st.log_entries || [];
+  const logHtml = logEntries.length
+    ? [...logEntries].reverse().slice(0,10).map(e =>
+        `<div class="le">
+          <span class="${e.success?'lok':'lfl'}">${e.success?'✓':'✗'}</span>
+          <span class="lti">${fmtDt(e.timestamp)}</span>
+          <span class="lde">${e.angle}° · ${e.triggered_by}</span>
+          ${e.error?`<span class="lfl">${e.error}</span>`:''}
+        </div>`).join('')
+    : '<div class="le"><span class="lde">No history yet</span></div>';
+
+  const logOpenCls = logOpen.has(id) ? ' open' : '';
+
+  el.className = `card${exp?' expanded':''}${fed?' feeding':''}${!on?' offline':''}`;
+  el.innerHTML = `
+    <div class="card-head" onclick="toggleExp('${id}')">
+      <div class="dot ${dotCls}"></div>
+      <div class="card-name-wrap">
+        <div class="card-name">${name}</div>
+        <div class="card-url">${tank.ip}:${tank.port||5000}</div>
+      </div>
+      <div>${bdg}</div>
+      <span class="chev">▼</span>
+    </div>
+    <div class="card-body">
+      ${on ? `
+        <div class="stats">
+          <div class="sc"><div class="sl">INTERVAL</div><div class="sv">${cfg.feed_interval_days??'—'}d</div></div>
+          <div class="sc"><div class="sl">ANGLE</div><div class="sv">${cfg.rotation_angle??'—'}°</div></div>
+          <div class="sc"><div class="sl">LAST FED</div><div class="sv" style="font-size:10px;color:var(--text-dim)">${lf?fmtDt(lf.timestamp):'—'}</div></div>
+        </div>
+
+        <div class="toggle-row">
+          <div><div class="tl">Auto-Schedule</div><div class="ts">${cfg.enabled?'Scheduled feeding ON':'Scheduled feeding OFF'}</div></div>
+          <label class="tog"><input type="checkbox" ${cfg.enabled?'checked':''} onchange="setEnabled('${id}',this.checked)"><div class="tog-track"></div></label>
+        </div>
+
+        ${nfdHtml}
+
+        <div class="fg"><label class="fl">TANK NAME</label>
+          <input type="text" id="${id}-nm" value="${cfg.tank_name||''}" placeholder="e.g. Living Room Tank" /></div>
+        <div class="fr">
+          <div class="fg"><label class="fl">INTERVAL (DAYS)</label>
+            <input type="number" id="${id}-iv" value="${cfg.feed_interval_days??1}" min="0.1" step="0.5" /></div>
+          <div class="fg"><label class="fl">ANGLE (°)</label>
+            <input type="number" id="${id}-ag" value="${cfg.rotation_angle??90}" min="1" max="360" /></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">NEXT FEED TIME</label>
+            <input type="datetime-local" id="${id}-nf" value="${toInput(nft)}" /></div>
+          <div class="fg"><label class="fl">MIN GAP (HRS)</label>
+            <input type="number" id="${id}-mg" value="${cfg.min_feed_gap_hours??6}" min="0" step="1" /></div>
+        </div>
+
+        <div class="brow" style="margin-bottom:7px">
+          <button class="btn bs" onclick="saveConfig('${id}')">💾 SAVE CONFIG</button>
+          <button class="btn bamber" id="${id}-tbtn" onclick="testFeed('${id}')" ${fed?'disabled':''}>
+            ${fed?'<span class="spin"></span> FEEDING…':'▶ TEST FEED'}
+          </button>
+        </div>
+        <button class="btn bgreen" style="margin-bottom:7px" onclick="feedNow('${id}')" ${fed?'disabled':''}>🐟 FEED NOW</button>
+
+        <div class="log-sec">
+          <div class="log-tog" onclick="toggleLog('${id}')">
+            <span id="${id}-lc">${logOpen.has(id)?'▼':'▶'}</span> FEED HISTORY
+          </div>
+          <div class="log-list${logOpenCls}" id="${id}-ll">${logHtml}</div>
+        </div>
+
+        <div class="div"></div>
+        <button class="btn bred" style="font-size:10px" onclick="removeTank('${id}')">✕ REMOVE THIS TANK</button>
+      ` : `
+        <div style="padding:20px 0;text-align:center;color:var(--text-muted);font-family:var(--mono);font-size:11px;line-height:1.8">
+          ⚠ CANNOT REACH ${tank.ip}:${tank.port||5000}<br>
+          <span style="font-size:10px;color:var(--text-muted)">Check that server.py is running on the Pi</span>
+        </div>
+        <div class="div"></div>
+        <button class="btn bred" style="font-size:10px" onclick="removeTank('${id}')">✕ REMOVE THIS TANK</button>
+      `}
+    </div>`;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function toggleExp(id) {
+  expanded.has(id) ? expanded.delete(id) : expanded.add(id);
+  const tank = tanks.find(t => t.id === id);
+  if (expanded.has(id) && tank) fetchLog(id, tank);
+  render(id);
+}
+
+async function fetchLog(id, tank) {
+  try {
+    const data = await api(tank, '/api/log?limit=10');
+    if (!states[id]) states[id] = { online:true };
+    states[id].log_entries = data;
+    render(id);
+  } catch {}
+}
+
+function toggleLog(id) {
+  logOpen.has(id) ? logOpen.delete(id) : logOpen.add(id);
+  const list = document.getElementById(`${id}-ll`);
+  const chev = document.getElementById(`${id}-lc`);
+  if (list) list.classList.toggle('open', logOpen.has(id));
+  if (chev) chev.textContent = logOpen.has(id) ? '▼' : '▶';
+}
+
+async function setEnabled(id, val) {
+  const tank = tanks.find(t => t.id === id);
+  if (!tank) return;
+  try {
+    await api(tank, '/api/config', { method:'POST', body:JSON.stringify({ enabled:val }) });
+    toast(val ? 'Auto-schedule enabled' : 'Auto-schedule disabled', 'success');
+    poll(tank);
+  } catch(e) { toast(`Error: ${e.message}`, 'error'); }
+}
+
+async function saveConfig(id) {
+  const tank = tanks.find(t => t.id === id);
+  if (!tank) return;
+
+  const name = document.getElementById(`${id}-nm`)?.value.trim();
+  const iv   = parseFloat(document.getElementById(`${id}-iv`)?.value);
+  const ag   = parseFloat(document.getElementById(`${id}-ag`)?.value);
+  const nfv  = document.getElementById(`${id}-nf`)?.value;
+  const mg   = parseFloat(document.getElementById(`${id}-mg`)?.value);
+
+  if (!name)              { toast('Name cannot be empty', 'error'); return; }
+  if (isNaN(iv)||iv<=0)  { toast('Invalid interval', 'error'); return; }
+  if (isNaN(ag)||ag<1||ag>360) { toast('Angle must be 1–360°', 'error'); return; }
+  if (isNaN(mg)||mg<0)   { toast('Min gap must be ≥ 0', 'error'); return; }
+
+  const body = { tank_name:name, feed_interval_days:iv, rotation_angle:ag, min_feed_gap_hours:mg };
+  if (nfv) body.next_feed_time = new Date(nfv).toISOString();
+
+  try {
+    await api(tank, '/api/config', { method:'POST', body:JSON.stringify(body) });
+    tank.name = name; save();
+    toast(`Config saved`, 'success');
+    poll(tank);
+  } catch(e) { toast(`Save failed: ${e.message}`, 'error'); }
+}
+
+async function feedNow(id, force=false) {
+  const tank = tanks.find(t => t.id === id);
+  if (!tank) return;
+  try {
+    const d = await api(tank, '/api/feed/now', { method:'POST',
+      body:JSON.stringify({ triggered_by:'manual', force }) });
+    if (d.success) { toast(`Feeding ${tank.name}…`, 'success'); setTimeout(()=>poll(tank),1500); }
+    else toast(d.error || 'Feed failed', 'error');
+  } catch(e) {
+    // Overfeeding lockout → offer to override
+    if (e.status === 409 && e.body?.skipped) {
+      const when = fmtDt(e.body.next_allowed);
+      if (confirm(`Already fed recently.\nNext feed allowed at ${when}.\n\nFeed anyway?`)) {
+        feedNow(id, true);
+      } else {
+        toast('Feed skipped', 'info');
+      }
+    } else {
+      toast(`Error: ${e.message}`, 'error');
+    }
+  }
+}
+
+async function testFeed(id) {
+  const tank = tanks.find(t => t.id === id);
+  if (!tank) return;
+  try {
+    const d = await api(tank, '/api/feed/now', { method:'POST', body:JSON.stringify({ triggered_by:'test' }) });
+    if (d.success) {
+      toast(`Test feed running…`, 'info');
+      [1500,4000,9000].forEach(ms => setTimeout(() => poll(tank), ms));
+      setTimeout(() => fetchLog(id, tank), 10000);
+    } else toast(d.error || 'Test failed', 'error');
+  } catch(e) { toast(`Error: ${e.message}`, 'error'); }
+}
+
+function removeTank(id) {
+  if (!confirm('Remove this tank from the dashboard?')) return;
+  stopPoll(id);
+  delete states[id];
+  expanded.delete(id);
+  logOpen.delete(id);
+  tanks = tanks.filter(t => t.id !== id);
+  save();
+  const el = document.getElementById(`c-${id}`);
+  if (el) el.remove();
+  if (!tanks.length) renderAll();
+  toast('Tank removed', 'info');
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function openAddModal() {
+  ['new-name','new-ip','new-token'].forEach(x => document.getElementById(x).value = '');
+  document.getElementById('new-port').value = '5000';
+  document.getElementById('add-modal').classList.add('open');
+  setTimeout(() => document.getElementById('new-name').focus(), 100);
+}
+function closeAddModal() { document.getElementById('add-modal').classList.remove('open'); }
+
+function confirmAdd() {
+  const name  = document.getElementById('new-name').value.trim();
+  const ip    = document.getElementById('new-ip').value.trim();
+  const port  = parseInt(document.getElementById('new-port').value) || 5000;
+  const token = document.getElementById('new-token').value.trim();
+
+  if (!name) { toast('Enter a tank name', 'error'); return; }
+  if (!ip)   { toast('Enter the Pi address', 'error'); return; }
+  // Accept IPv4 or a hostname like tank-office.local / localhost
+  const isIp   = /^\d{1,3}(\.\d{1,3}){3}$/.test(ip);
+  const isHost = /^[a-zA-Z0-9][a-zA-Z0-9.\-]*$/.test(ip);
+  if (!isIp && !isHost) {
+    toast('Enter a valid IP or hostname', 'error'); return;
+  }
+  if (!token) { toast('Enter the auth token from the Pi', 'error'); return; }
+
+  const tank = { id:uid(), name, ip, port, token };
+  tanks.push(tank); save();
+  closeAddModal();
+
+  const list = document.getElementById('tank-list');
+  const empty = list.querySelector('.empty');
+  if (empty) empty.remove();
+
+  const el = document.createElement('div');
+  el.id = `c-${tank.id}`;
+  list.appendChild(el);
+  expanded.add(tank.id);
+  render(tank.id);
+  startPoll(tank);
+  toast(`${name} added`, 'success');
+}
+
+// ── Export / Import ─────────────────────────────────────────────────────────
+function exportTanks() {
+  if (!tanks.length) { toast('No tanks to export', 'error'); return; }
+  const blob = new Blob([JSON.stringify(tanks, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'aquafeed-tanks.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Tank list exported', 'success');
+}
+
+function importTanks(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const imported = JSON.parse(reader.result);
+      if (!Array.isArray(imported)) throw new Error('Invalid format');
+      // Merge, skipping duplicates by ip:port
+      const existing = new Set(tanks.map(t => `${t.ip}:${t.port}`));
+      let added = 0;
+      imported.forEach(t => {
+        if (t.ip && !existing.has(`${t.ip}:${t.port||5000}`)) {
+          tanks.push({ id:uid(), name:t.name||'Imported Tank', ip:t.ip,
+                       port:t.port||5000, token:t.token||'' });
+          added++;
+        }
+      });
+      save();
+      // Rebuild from scratch
+      document.getElementById('tank-list').innerHTML = '';
+      renderAll();
+      tanks.forEach(t => startPoll(t));
+      toast(`Imported ${added} tank${added!==1?'s':''}`, 'success');
+    } catch(e) {
+      toast(`Import failed: ${e.message}`, 'error');
+    }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderAll();
+tanks.forEach(t => startPoll(t));
+</script>
+</body>
+</html>

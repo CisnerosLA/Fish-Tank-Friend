@@ -1,0 +1,14 @@
+[Unit]
+Description=AquaFeed Fish Tank Feeder Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/feeder/server.py
+WorkingDirectory=/home/pi/feeder
+Restart=always
+RestartSec=5
+User=pi
+
+[Install]
+WantedBy=multi-user.target
