@@ -2,6 +2,22 @@
 Automatically feeds for my fish tank.
 Connect multiple Pi's together from different locations and control the feeds from one location.
 
+# File structure
+## On Rasperry Pi Zeros
+<code>mkdir /home/pi/feeder</code>  
+├── feed.cpp            ← your source (upload it here)  
+├── feed                ← compiled binary:  g++ feed.cpp -o feed -lwiringPi -lm  
+├── server.py           ← the Flask API server  
+├── feeder_config.json  ← auto-created on first run  
+├── feed_log.json       ← auto-created on first run  
+└── feeder_token.txt    ← auto-created on first run (holds the auth token)  
+
+/etc/systemd/system/aquafeed.service   ← copied via: sudo cp aquafeed.service  
+/etc/systemd/system/  
+
+## On laptop or phone browser
+aquafeed_ui.html        ← just open it in a browser; it's not placed on the Pi  
+
 # Setup:
 ## Build tools
 <code>sudo apt update</code>  
@@ -13,10 +29,6 @@ Connect multiple Pi's together from different locations and control the feeds fr
 <code>./build</code>  
 <code>gpio -v          # should report version 3.x</code>  
 <code>cd ~</code>  
-
-
-## Create the file structure
-<code>mkdir /home/pi/feeder</code>  
 
 ## Compile the feeder
 <code>cd /home/pi/feeder</code>  
