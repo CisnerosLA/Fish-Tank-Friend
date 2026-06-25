@@ -26,7 +26,7 @@ Protect the exposed file by putting it in its own folder. Name it index.html to 
 # Setup:
 ## Install libraries
 <code>sudo apt update</code>  
-<codesudo apt full-upgrade -y</code>  
+<code>sudo apt full-upgrade -y</code>  
 <strong>build essential</strong>  
 <code>sudo apt install -y build-essential git</code>  
 <strong>Maintained WiringPi (GC2 fork) — build from source</strong>  
