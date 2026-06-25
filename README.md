@@ -13,9 +13,10 @@ Connect multiple Pi's together from different locations and control the feeds fr
 ├── feeder_token.txt    ← auto-created on first run (holds the auth token)  
 └── aquafeed_ui.html    ← hosted by the Pi 
 
+<strong>Only for Pi that is going to host the UI</strong>  
 <code>mkdir -p /home/pi/feeder/ui</code>  
 <code>cp aquafeed_ui.html /home/pi/feeder/ui/index.html</code>  
-Portect the exposed file by putting it in its own folder. Name it index.html to make it shorter to type.
+Protect the exposed file by putting it in its own folder. Name it index.html to make it shorter to type.  
 
 /etc/systemd/system/aquafeed.service   ← copied via: sudo cp aquafeed.service  
 /etc/systemd/system/  
@@ -44,9 +45,10 @@ Portect the exposed file by putting it in its own folder. Name it index.html to 
 ## Install service
 <code>cd /home/pi/feeder</code>  
 <code>python3 server.py    # Should print the auth token. Copy it. Then stop with Ctrl-C</code>  
-<code>sudo cp aquafeed.service /etc/systemd/system/</code>  
-<code>sudo systemctl enable aquafeed</code>  
-<code>sudo systemctl start aquafeed</code>  
+<strong>Only for Pi that is going to host the UI</strong>  
+<code>sudo cp aquafeed-ui.service /etc/systemd/system/</code>  
+<code>sudo systemctl enable aquafeed-ui</code>  
+<code>sudo systemctl start aquafeed-ui</code>  
 
 ## Grab Token
 <code>cat /home/pi/feeder/feeder_token.txt</code>  
@@ -59,4 +61,4 @@ Portect the exposed file by putting it in its own folder. Name it index.html to 
 http://tank-office.local:8080/  
 or  
 http://192.168.1.50:8080/   
-(use <code>hostname -I</code> to find ip of Pi)
+Tap + ADD TANK → enter a name, address tank-office.local, port 5000, and paste the token. Done.  
