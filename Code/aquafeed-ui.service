@@ -1,0 +1,14 @@
+[Unit]
+Description=AquaFeed UI (static web server)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 -m http.server 8080 --directory /home/pi/feeder/ui
+WorkingDirectory=/home/pi/feeder/ui
+Restart=always
+RestartSec=5
+User=pi
+
+[Install]
+WantedBy=multi-user.target
