@@ -3,6 +3,8 @@ Automatically feeds for my fish tank.
 Connect multiple Pi's together from different locations and control the feeds from one location.
 
 # File structure
+<code>ssh pi@tank-office.local</code>  
+<code>ssh pi@tank-livingroom.local</code>  
 ## On Rasperry Pi Zeros
 <code>mkdir /home/pi/feeder</code>  
 ├── feed.cpp            ← your source (upload it here)  
