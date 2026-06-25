@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include <wiringPi.h>
 
 //use 'gpio readall' for WPi GPIO diagram
@@ -6,7 +9,7 @@
 #define IN2 6	//WPi GPIO 6  (RPi0 pin 22) | WPi GPIO 4 (RPi4 pin 16)
 #define IN3 26	//WPi GPIO 26 (RPi0 pin 32) | WPi GPIO 5 (RPi4 pin 18)
 #define IN4 27	//WPi GPIO 27 (RPi0 pin 36) | WPi GPIO 6 (RPi4 pin 22)
-const int teeth = 2048;
+const int teeth = 2048;  //steps per full revolution
 int Steps = 0;			//stage of the stepper coils
 bool Direction = false;		//true = ccw: RHR
 int feedNum = 0;		//number of times the feeder has been ran
@@ -14,10 +17,25 @@ int compartments = 4;		//number of food compartments
 
 void stepper(int xw);
 void shake();
-void process();
+void process(int dispenseSteps);
 
-int main (void) {
-  printf("Beginning fish feeding process\n");
+int main (int argc, char *argv[]) {
+  // Default: 90 degrees (one quarter turn = teeth/compartments)
+  double angle = 360.0 / compartments;
+ 
+  // Parse --angle <degrees>
+  for (int i = 1; i < argc - 1; i++) {
+    if (strcmp(argv[i], "--angle") == 0) {
+      angle = atof(argv[i + 1]);
+    }
+  }
+  if (angle <= 0) angle = 360.0 / compartments;
+ 
+  // Convert angle -> steps. -1 keeps the original behavior where the
+  // quarter-turn count (512) is reduced by one so coils don't overshoot.
+  int dispenseSteps = (int) lround(teeth * (angle / 360.0)) - 1;
+  if (dispenseSteps < 1) dispenseSteps = 1;
+  printf("Beginning fish feeding process (%.1f deg, %d steps)\n", angle, dispenseSteps);
   if (wiringPiSetup() == -1)
     return 1;
 
@@ -29,7 +47,7 @@ int main (void) {
   printf("dispensing...");
   fflush(stdout);
 
-  process();
+  process(dispenseSteps);
 
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
@@ -40,9 +58,8 @@ int main (void) {
   return 0;
 }
 
-void process() {
-  Direction = true;
-  for (int i = 0; i < ((teeth) / compartments)-2; i++) { //-2 bc 11 does not go into 2048 evenly. /4 so it stops every quarter turn
+void process(int dispenseSteps) {
+for (int i = 0; i < ((teeth) / compartments)-2; i++) { //-2 bc 11 does not go into 2048 evenly. /4 so it stops every quarter turn
     stepper(1);
     delayMicroseconds(10000); //2400); //800
   }
@@ -114,4 +131,3 @@ void stepper(int xw) {
     }
   }
 }
-
