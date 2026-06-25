@@ -47,6 +47,10 @@ Protect the exposed file by putting it in its own folder. Name it index.html to 
 
 ## Install service
 <code>cd /home/pi/feeder</code>  
+<code>sudo cp aquafeed.service /etc/systemd/system/</code>  
+<code>sudo systemctl enable aquafeed</code>  
+<code>sudo systemctl start aquafeed</code>  
+<code>sudo systemctl status aquafeed     # confirm running</code>  
 <code>python3 server.py    # Should print the auth token. Copy it. Then stop with Ctrl-C</code>  
 <strong>Only for Pi that is going to host the UI</strong>  
 <code>sudo cp aquafeed-ui.service /etc/systemd/system/</code>  
