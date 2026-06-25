@@ -59,7 +59,8 @@ int main (int argc, char *argv[]) {
 }
 
 void process(int dispenseSteps) {
-  for (int i = 0; i < ((teeth) / compartments)-2; i++) { //-2 bc 11 does not go into 2048 evenly. /4 so it stops every quarter turn
+  for (int i = 0; i < dispenseSteps; i++)  // dispense according to the angle from the UI
+  //for (int i = 0; i < ((teeth) / compartments)-2; i++) { //-2 bc 11 does not go into 2048 evenly. /4 so it stops every quarter turn
     stepper(1);
     delayMicroseconds(10000); //2400); //800
   }
