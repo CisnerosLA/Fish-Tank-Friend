@@ -41,6 +41,7 @@ Protect the exposed file by putting it in its own folder. Name it index.html to 
 ## Compile the feeder
 <code>cd /home/pi/feeder</code>  
 <code>g++ feed.cpp -o feed -lwiringPi -lm</code>  
+Note: the characters are lowercase L's, not the number 1  
 
 ## Test stepper motor setup
 <code>./feed --angle 90</code>  
